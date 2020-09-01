@@ -241,14 +241,16 @@ PrincipalComponentsAnalysis <- function(data,
     }
 
     # Smooth non-positive definite correlation in the same way as psych::principal
-    cor <- try(cor.smooth(correlation.matrix, eig.tol = 10^{-12}), silent = FALSE)
-    score.weights <- try(solve(cor, S), silent = TRUE)
+    corM <- try(cor.smooth(correlation.matrix, eig.tol = 10^{-12}), silent = FALSE)
+    score.weights <- try(solve(corM, S), silent = TRUE)
     if (inherits(score.weights, "try-error"))
     {
         cat("correlation.matrix:\n")
         print(dput(correlation.matrix))
+        cat("eigen(correlation.matrix)\n")
+        print(dput(eigen(correlation.matrix)))
         cat("smoothed matrix:\n")
-        print(dput(cor))
+        print(dput(corM))
         cat("S:\n")
         print(dput(S))
         print(.Machine)
