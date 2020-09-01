@@ -55,7 +55,7 @@
 #' Includes handling of missing data, weighting, and filtering.
 #' @importFrom flipFormat Labels
 #' @importFrom flipStatistics CovarianceAndCorrelationMatrix StandardDeviation
-#' @importFrom psych principal factor.scores cor.smooth
+#' @importFrom psych principal factor.scores
 #' @export
 PrincipalComponentsAnalysis <- function(data,
                                weights = NULL,
@@ -241,7 +241,7 @@ PrincipalComponentsAnalysis <- function(data,
     }
 
     # Smooth non-positive definite correlation in the same way as psych::principal
-    corM <- try(cor.smooth(correlation.matrix, eig.tol = 10^{-12}), silent = FALSE)
+    corM <- try(cor.smooth2(correlation.matrix), silent = FALSE)
     score.weights <- try(solve(corM, S), silent = TRUE)
     if (inherits(score.weights, "try-error"))
     {
@@ -782,4 +782,33 @@ convertVariableForFactorAnalysis <- function(variable, include.question.name = T
         colnames(indicator.matrix) <- cn
     }
     return(indicator.matrix)
+}
+
+# A copy of psych::cor.smooth
+# However, we apply the smoothing if any of the eigenvalues are on the
+# same order of magnitude as .Machine$double.eps
+
+#' @importFrom stats cov2cor
+cor.smooth2 <- function (x, eig.tol = 10^-12)
+{
+    eigens <- try(eigen(x), TRUE)
+    if (inherits(eigens, as.character("try-error"))) {
+        warning("I am sorry, there is something seriously wrong with the correlation matrix,\ncor.smooth failed to  smooth it because some of the eigen values are NA.  \nAre you sure you specified the data correctly?")
+    }
+    else {
+        if (min(eigens$values) < 10 * .Machine$double.eps) {
+            warning("Matrix was not positive definite, smoothing was done")
+            eigens$values[eigens$values < eig.tol] <- 100 * eig.tol
+            nvar <- dim(x)[1]
+            tot <- sum(eigens$values)
+            eigens$values <- eigens$values * nvar/tot
+            cnames <- colnames(x)
+            rnames <- rownames(x)
+            x <- eigens$vectors %*% diag(eigens$values) %*% t(eigens$vectors)
+            x <- cov2cor(x)
+            colnames(x) <- cnames
+            rownames(x) <- rnames
+        }
+    }
+    return(x)
 }
