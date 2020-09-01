@@ -245,7 +245,13 @@ PrincipalComponentsAnalysis <- function(data,
     score.weights <- try(solve(cor, S), silent = TRUE)
     if (inherits(score.weights, "try-error"))
     {
+        cat("correlation.matrix:\n")
         print(dput(correlation.matrix))
+        cat("smoothed matrix:\n")
+        print(dput(cor))
+        cat("S:\n")
+        print(dput(S))
+        print(.Machine)
         stop("Component scores could not be computed as the correlation or correlation matrix is singular.")
     }
 

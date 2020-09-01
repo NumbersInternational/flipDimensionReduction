@@ -25,6 +25,7 @@ r_packages:
   - covr
 
 r_github_packages:
+  - Displayr/formattable
   - Displayr/flipDevTools
   - Displayr/flipExampleData
   - Displayr/flipTransformations
